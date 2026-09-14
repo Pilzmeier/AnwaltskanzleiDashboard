@@ -1,0 +1,5009 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>JUSTITIA | Kanzlei & Justizsystem</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<script>
+tailwind.config = {
+    darkMode: "class",
+    theme: {
+        extend: {
+            colors: {
+                gold: {
+                    300:"#fde68a",
+                    400:"#fbbf24",
+                    500:"#f59e0b",
+                    600:"#d97706",
+                    700:"#b45309"
+                }
+            }
+        }
+    }
+};
+</script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    background:
+        radial-gradient(circle at 15% 10%,rgba(245,158,11,.10),transparent 25%),
+        radial-gradient(circle at 85% 20%,rgba(99,102,241,.10),transparent 25%),
+        radial-gradient(circle at 50% 100%,rgba(168,85,247,.07),transparent 30%),
+        #020617;
+    color:#f8fafc;
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:#020617;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#334155;
+    border-radius:20px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#f59e0b;
+}
+
+.glass{
+    background:rgba(15,23,42,.72);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(148,163,184,.10);
+}
+
+.glass-gold{
+    background:linear-gradient(
+        145deg,
+        rgba(245,158,11,.08),
+        rgba(15,23,42,.75)
+    );
+    border:1px solid rgba(245,158,11,.18);
+    backdrop-filter:blur(18px);
+}
+
+.gradient-text{
+    background:linear-gradient(
+        135deg,
+        #fff7ae,
+        #fbbf24,
+        #d97706
+    );
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.gradient-blue{
+    background:linear-gradient(
+        135deg,
+        #dbeafe,
+        #60a5fa,
+        #2563eb
+    );
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.gradient-purple{
+    background:linear-gradient(
+        135deg,
+        #f3e8ff,
+        #c084fc,
+        #9333ea
+    );
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.form-input{
+    width:100%;
+    padding:13px 15px;
+    border-radius:13px;
+    background:rgba(2,6,23,.75);
+    border:1px solid rgba(148,163,184,.15);
+    color:#f8fafc;
+    outline:none;
+    transition:.2s;
+}
+
+.form-input:focus{
+    border-color:#fbbf24;
+    box-shadow:0 0 0 3px rgba(251,191,36,.08);
+}
+
+.form-input::placeholder{
+    color:#64748b;
+}
+
+.btn{
+    transition:.2s;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+.btn:active{
+    transform:scale(.97);
+}
+
+.nav-btn{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    color:#94a3b8;
+    transition:.2s;
+    text-align:left;
+}
+
+.nav-btn:hover{
+    color:#fff;
+    background:rgba(245,158,11,.08);
+}
+
+.nav-btn.active{
+    color:#fbbf24;
+    background:linear-gradient(
+        90deg,
+        rgba(245,158,11,.16),
+        rgba(245,158,11,.04)
+    );
+    border:1px solid rgba(245,158,11,.16);
+}
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+    animation:pageIn .25s ease;
+}
+
+@keyframes pageIn{
+    from{
+        opacity:0;
+        transform:translateY(8px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.stat-card{
+    position:relative;
+    overflow:hidden;
+}
+
+.stat-card::after{
+    content:"";
+    position:absolute;
+    width:120px;
+    height:120px;
+    right:-50px;
+    top:-50px;
+    background:rgba(245,158,11,.08);
+    border-radius:50%;
+}
+
+.document{
+    width:100%;
+    max-width:900px;
+    margin:auto;
+    background:#fff;
+    color:#111827;
+    min-height:1050px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 25px 80px rgba(0,0,0,.45);
+}
+
+.doc-red{
+    border-top:18px solid #991b1b;
+}
+
+.doc-red .doc-header{
+    background:linear-gradient(135deg,#450a0a,#991b1b);
+    color:white;
+}
+
+.doc-blue{
+    border-top:18px solid #1d4ed8;
+}
+
+.doc-blue .doc-header{
+    background:linear-gradient(135deg,#0f172a,#1d4ed8);
+    color:white;
+}
+
+.doc-purple{
+    border-top:18px solid #7e22ce;
+}
+
+.doc-purple .doc-header{
+    background:linear-gradient(135deg,#3b0764,#7e22ce);
+    color:white;
+}
+
+.doc-header{
+    padding:35px 45px;
+}
+
+.doc-body{
+    padding:35px 45px;
+}
+
+.doc-section{
+    margin-bottom:28px;
+}
+
+.doc-section h3{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    font-weight:900;
+    margin-bottom:9px;
+    color:#475569;
+}
+
+.doc-box{
+    border:1px solid #e2e8f0;
+    background:#f8fafc;
+    padding:14px;
+    border-radius:8px;
+}
+
+.seal{
+    width:115px;
+    height:115px;
+    border:5px double currentColor;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-weight:900;
+    font-size:11px;
+    transform:rotate(-12deg);
+}
+
+.signature-line{
+    border-bottom:1px solid #334155;
+    min-width:220px;
+    padding-bottom:8px;
+}
+
+.modal{
+    background:rgba(0,0,0,.78);
+    backdrop-filter:blur(12px);
+}
+
+#signatureCanvas{
+    background:#fff;
+    border-radius:10px;
+    cursor:crosshair;
+    touch-action:none;
+}
+
+.toast{
+    animation:toastIn .3s ease;
+}
+
+@keyframes toastIn{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.login-orb{
+    animation:orb 7s ease-in-out infinite;
+}
+
+@keyframes orb{
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(20px,-20px) scale(1.1);}
+}
+
+.stamp{
+    position:absolute;
+    right:35px;
+    top:170px;
+    border:5px dashed;
+    padding:10px 18px;
+    font-weight:1000;
+    transform:rotate(-12deg);
+    opacity:.8;
+}
+
+.line-clamp-2{
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+@media(max-width:900px){
+    #sidebar{
+        position:fixed;
+        left:-290px;
+        top:0;
+        bottom:0;
+        z-index:100;
+        transition:.3s;
+    }
+
+    #sidebar.open{
+        left:0;
+    }
+
+    .doc-header,
+    .doc-body{
+        padding:25px;
+    }
+}
+
+@media print{
+    body{
+        background:white!important;
+    }
+
+    #sidebar,
+    #topbar,
+    .no-print{
+        display:none!important;
+    }
+
+    #main{
+        margin:0!important;
+    }
+
+    .document{
+        box-shadow:none;
+        max-width:none;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     LOGIN
+========================================================= -->
+
+<div id="loginScreen"
+     class="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden">
+
+    <div class="absolute inset-0 bg-slate-950"></div>
+
+    <div class="login-orb absolute -top-32 -left-32 w-96 h-96 rounded-full
+                bg-amber-500/10 blur-3xl"></div>
+
+    <div class="login-orb absolute -bottom-40 -right-32 w-[500px] h-[500px]
+                rounded-full bg-indigo-600/10 blur-3xl"
+         style="animation-delay:2s"></div>
+
+    <div class="relative w-full max-w-md px-6">
+
+        <div class="glass-gold rounded-[30px] p-8 shadow-2xl">
+
+            <div class="text-center mb-8">
+
+                <div class="mx-auto w-20 h-20 rounded-3xl
+                            bg-gradient-to-br from-amber-300 to-amber-600
+                            text-slate-950 flex items-center justify-center
+                            text-4xl shadow-xl shadow-amber-500/20 mb-5">
+
+                    <i class="fa-solid fa-scale-balanced"></i>
+
+                </div>
+
+                <div class="text-4xl font-black gradient-text tracking-wider">
+                    JUSTITIA
+                </div>
+
+                <div class="text-xs text-slate-500 tracking-[.3em] mt-2">
+                    KANZLEI & JUSTIZSYSTEM
+                </div>
+
+            </div>
+
+            <div id="loginError"
+                 class="hidden mb-4 rounded-xl p-3
+                        bg-red-500/10 border border-red-500/30
+                        text-red-400 text-sm text-center">
+            </div>
+
+            <label class="text-xs text-amber-400 font-bold uppercase tracking-wider">
+                Systempasswort
+            </label>
+
+            <div class="relative mt-2">
+
+                <input id="loginPassword"
+                       type="password"
+                       class="form-input pr-12"
+                       placeholder="Passwort eingeben"
+                       onkeydown="if(event.key==='Enter') login()">
+
+                <button onclick="toggleLoginPassword()"
+                        class="absolute right-3 top-1/2 -translate-y-1/2
+                               text-slate-500 hover:text-amber-400">
+
+                    <i id="loginEye" class="fa-solid fa-eye"></i>
+
+                </button>
+
+            </div>
+
+            <button onclick="login()"
+                    class="btn w-full mt-5 py-4 rounded-xl
+                           bg-gradient-to-r from-amber-400 to-amber-600
+                           text-slate-950 font-black shadow-lg
+                           shadow-amber-500/20">
+
+                <i class="fa-solid fa-unlock mr-2"></i>
+                JUSTITIA öffnen
+
+            </button>
+
+            <div class="mt-6 text-center text-[11px] text-slate-600">
+                Geschütztes Kanzlei- und Justizportal
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- =========================================================
+     APPLICATION
+========================================================= -->
+
+<div id="application" class="hidden min-h-screen">
+
+<!-- SIDEBAR -->
+
+<aside id="sidebar"
+       class="w-[270px] fixed left-0 top-0 bottom-0
+              bg-slate-950/95 backdrop-blur-2xl
+              border-r border-slate-800 z-40 flex flex-col">
+
+    <div class="p-5 border-b border-slate-800">
+
+        <div class="flex items-center gap-3">
+
+            <div class="w-11 h-11 rounded-xl
+                        bg-amber-500/10 border border-amber-500/30
+                        flex items-center justify-center
+                        text-amber-400 text-xl">
+
+                <i class="fa-solid fa-scale-balanced"></i>
+
+            </div>
+
+            <div>
+                <div class="font-black gradient-text tracking-widest">
+                    JUSTITIA
+                </div>
+                <div class="text-[9px] text-slate-500 tracking-[.2em]">
+                    LEGAL SYSTEM
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="p-4 flex-1 overflow-y-auto">
+
+        <div class="text-[10px] text-slate-600 uppercase tracking-widest font-bold px-3 mb-2">
+            Übersicht
+        </div>
+
+        <button class="nav-btn active" onclick="showPage('dashboard',this)">
+            <i class="fa-solid fa-grid-2"></i>
+            Dashboard
+        </button>
+
+        <button class="nav-btn" onclick="showPage('akten',this)">
+            <i class="fa-solid fa-folder-open"></i>
+            Kanzleiakten
+        </button>
+
+        <button class="nav-btn" onclick="showPage('justiz',this)">
+            <i class="fa-solid fa-gavel"></i>
+            Justizdokumente
+        </button>
+
+        <button class="nav-btn" onclick="showPage('rechnung',this)">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            Rechnungen
+        </button>
+
+        <div class="text-[10px] text-slate-600 uppercase tracking-widest font-bold px-3 mt-7 mb-2">
+            Werkzeuge
+        </div>
+
+        <button class="nav-btn" onclick="showPage('bericht',this)">
+            <i class="fa-brands fa-discord"></i>
+            Discord-Bericht
+        </button>
+
+        <button class="nav-btn" onclick="showPage('suche',this)">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Globale Suche
+        </button>
+
+        <div class="mt-8 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+
+            <div class="text-[10px] text-amber-400 uppercase font-bold mb-2">
+                Systemstatus
+            </div>
+
+            <div id="sidebarDbStatus"
+                 class="flex items-center gap-2 text-xs text-slate-400">
+
+                <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                Verbinde...
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="p-4 border-t border-slate-800">
+
+        <button onclick="logout()"
+                class="nav-btn hover:!text-red-400">
+
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Abmelden
+
+        </button>
+
+    </div>
+
+</aside>
+
+
+<!-- MAIN -->
+
+<div id="main"
+     class="ml-[270px] min-h-screen">
+
+<!-- TOPBAR -->
+
+<header id="topbar"
+        class="sticky top-0 z-30 h-[74px]
+               bg-slate-950/75 backdrop-blur-xl
+               border-b border-slate-800
+               flex items-center justify-between px-5 lg:px-8">
+
+    <div class="flex items-center gap-3">
+
+        <button onclick="toggleSidebar()"
+                class="lg:hidden w-10 h-10 rounded-xl
+                       bg-slate-900 border border-slate-800">
+
+            <i class="fa-solid fa-bars"></i>
+
+        </button>
+
+        <div>
+            <div id="pageTitle"
+                 class="font-bold text-white">
+                Dashboard
+            </div>
+
+            <div class="text-[10px] text-slate-600">
+                JUSTITIA • Kanzlei & Justiz
+            </div>
+        </div>
+
+    </div>
+
+    <div class="flex items-center gap-3">
+
+        <div id="topDbStatus"
+             class="hidden sm:flex items-center gap-2
+                    px-3 py-2 rounded-xl
+                    bg-emerald-500/5 border border-emerald-500/10
+                    text-xs text-emerald-400">
+
+            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+            Online
+
+        </div>
+
+        <div class="w-10 h-10 rounded-xl
+                    bg-amber-500/10 border border-amber-500/20
+                    flex items-center justify-center text-amber-400">
+
+            <i class="fa-solid fa-user-tie"></i>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="p-5 lg:p-8">
+
+
+<!-- =========================================================
+     DASHBOARD
+========================================================= -->
+
+<section id="page-dashboard" class="page active">
+
+    <div class="mb-8">
+
+        <div class="inline-flex items-center gap-2
+                    px-3 py-1.5 rounded-full
+                    bg-amber-500/10 border border-amber-500/20
+                    text-amber-400 text-[10px] uppercase font-bold">
+
+            <i class="fa-solid fa-shield-halved"></i>
+            Zentrales Kanzleisystem
+
+        </div>
+
+        <h1 class="text-3xl lg:text-5xl font-black mt-4">
+            Willkommen bei
+            <span class="gradient-text">JUSTITIA.</span>
+        </h1>
+
+        <p class="text-slate-500 mt-2 max-w-2xl">
+            Zentrale Verwaltung von Kanzleiakten, Justizdokumenten,
+            Rechnungen und Verfahrensunterlagen.
+        </p>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+
+        <div class="glass-gold stat-card rounded-2xl p-5">
+
+            <div class="flex justify-between">
+
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                        Kanzleiakten
+                    </div>
+
+                    <div id="statCases"
+                         class="text-3xl font-black mt-2">
+                        0
+                    </div>
+                </div>
+
+                <div class="w-11 h-11 rounded-xl
+                            bg-amber-500/10 text-amber-400
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-folder-open"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="glass rounded-2xl p-5 stat-card">
+
+            <div class="flex justify-between">
+
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                        Justizdokumente
+                    </div>
+
+                    <div id="statDocuments"
+                         class="text-3xl font-black mt-2">
+                        0
+                    </div>
+                </div>
+
+                <div class="w-11 h-11 rounded-xl
+                            bg-blue-500/10 text-blue-400
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-gavel"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="glass rounded-2xl p-5 stat-card">
+
+            <div class="flex justify-between">
+
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                        Einnahmen
+                    </div>
+
+                    <div id="statRevenue"
+                         class="text-3xl font-black mt-2 text-emerald-400">
+                        0 €
+                    </div>
+                </div>
+
+                <div class="w-11 h-11 rounded-xl
+                            bg-emerald-500/10 text-emerald-400
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-euro-sign"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="glass rounded-2xl p-5 stat-card">
+
+            <div class="flex justify-between">
+
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                        System
+                    </div>
+
+                    <div class="text-xl font-black mt-3 text-amber-400">
+                        AKTIV
+                    </div>
+                </div>
+
+                <div class="w-11 h-11 rounded-xl
+                            bg-purple-500/10 text-purple-400
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-server"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="grid xl:grid-cols-3 gap-6">
+
+        <div class="xl:col-span-2 glass rounded-3xl p-6">
+
+            <div class="flex items-center justify-between mb-6">
+
+                <div>
+                    <h2 class="font-black text-xl">
+                        Schnellzugriff
+                    </h2>
+
+                    <p class="text-xs text-slate-500">
+                        Häufig verwendete Funktionen
+                    </p>
+                </div>
+
+                <i class="fa-solid fa-bolt text-amber-400"></i>
+
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+
+                <button onclick="showPageByName('justiz')"
+                        class="group text-left p-5 rounded-2xl
+                               bg-red-500/5 border border-red-500/10
+                               hover:border-red-500/30 transition">
+
+                    <i class="fa-solid fa-file-circle-exclamation
+                              text-red-400 text-2xl"></i>
+
+                    <div class="font-bold mt-4">
+                        Haftbefehl erstellen
+                    </div>
+
+                    <div class="text-xs text-slate-500 mt-1">
+                        Offizielles Justizdokument ausfertigen
+                    </div>
+
+                </button>
+
+
+                <button onclick="showPageByName('akten')"
+                        class="group text-left p-5 rounded-2xl
+                               bg-amber-500/5 border border-amber-500/10
+                               hover:border-amber-500/30 transition">
+
+                    <i class="fa-solid fa-folder-plus
+                              text-amber-400 text-2xl"></i>
+
+                    <div class="font-bold mt-4">
+                        Neue Kanzleiakte
+                    </div>
+
+                    <div class="text-xs text-slate-500 mt-1">
+                        Verteidigungsakte anlegen
+                    </div>
+
+                </button>
+
+
+                <button onclick="showPageByName('rechnung')"
+                        class="group text-left p-5 rounded-2xl
+                               bg-emerald-500/5 border border-emerald-500/10
+                               hover:border-emerald-500/30 transition">
+
+                    <i class="fa-solid fa-file-invoice-dollar
+                              text-emerald-400 text-2xl"></i>
+
+                    <div class="font-bold mt-4">
+                        Rechnung erstellen
+                    </div>
+
+                    <div class="text-xs text-slate-500 mt-1">
+                        Kanzleirechnung als PDF
+                    </div>
+
+                </button>
+
+
+                <button onclick="showPageByName('suche')"
+                        class="group text-left p-5 rounded-2xl
+                               bg-blue-500/5 border border-blue-500/10
+                               hover:border-blue-500/30 transition">
+
+                    <i class="fa-solid fa-magnifying-glass
+                              text-blue-400 text-2xl"></i>
+
+                    <div class="font-bold mt-4">
+                        Globale Suche
+                    </div>
+
+                    <div class="text-xs text-slate-500 mt-1">
+                        Alle gespeicherten Daten durchsuchen
+                    </div>
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="glass rounded-3xl p-6">
+
+            <div class="flex items-center gap-3 mb-5">
+
+                <div class="w-10 h-10 rounded-xl
+                            bg-purple-500/10 text-purple-400
+                            flex items-center justify-center">
+
+                    <i class="fa-solid fa-circle-info"></i>
+
+                </div>
+
+                <div>
+                    <h2 class="font-bold">
+                        System
+                    </h2>
+
+                    <p class="text-xs text-slate-500">
+                        Informationen
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="space-y-4 text-sm">
+
+                <div class="flex justify-between border-b border-slate-800 pb-3">
+                    <span class="text-slate-500">Kanzlei</span>
+                    <b class="text-amber-400">JUSTITIA</b>
+                </div>
+
+                <div class="flex justify-between border-b border-slate-800 pb-3">
+                    <span class="text-slate-500">System</span>
+                    <span>Justitia Legal</span>
+                </div>
+
+                <div class="flex justify-between border-b border-slate-800 pb-3">
+                    <span class="text-slate-500">Cloud</span>
+                    <span id="dashboardCloud"
+                          class="text-emerald-400">
+                        Verbinde...
+                    </span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Jahr</span>
+                    <span>2026</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     AKTEN
+========================================================= -->
+
+<section id="page-akten" class="page">
+
+    <div class="flex flex-col lg:flex-row lg:items-center
+                justify-between gap-4 mb-6">
+
+        <div>
+            <h1 class="text-3xl font-black">
+                Kanzleiakten
+            </h1>
+
+            <p class="text-slate-500 text-sm mt-1">
+                Ermittlungs-, Verteidigungs- und Verfahrensakten.
+            </p>
+        </div>
+
+        <button onclick="resetCaseForm()"
+                class="btn px-5 py-3 rounded-xl
+                       bg-amber-400 text-slate-950 font-black">
+
+            <i class="fa-solid fa-plus mr-2"></i>
+            Neue Akte
+
+        </button>
+
+    </div>
+
+
+    <div class="grid xl:grid-cols-12 gap-6">
+
+        <div class="xl:col-span-7 glass rounded-3xl p-6">
+
+            <div class="flex items-center justify-between mb-6">
+
+                <h2 class="font-black text-xl">
+                    Aktenformular
+                </h2>
+
+                <span class="text-[10px] text-slate-500">
+                    Pflichtfelder *
+                </span>
+
+            </div>
+
+
+            <div class="space-y-5">
+
+                <div class="grid md:grid-cols-2 gap-4">
+
+                    <div>
+                        <label class="label">Zuständiger Verteidiger *</label>
+                        <input id="caseLawyer"
+                               class="form-input mt-2"
+                               placeholder="z.B. RA Max Mustermann">
+                    </div>
+
+                    <div>
+                        <label class="label">Beschuldigter *</label>
+                        <input id="caseSuspect"
+                               class="form-input mt-2"
+                               placeholder="Name der Person">
+                    </div>
+
+                </div>
+
+
+                <div>
+                    <label class="label">Zuständige Beamte</label>
+                    <input id="caseOfficers"
+                           class="form-input mt-2"
+                           placeholder="Polizei / Ermittler / Beamte">
+                </div>
+
+
+                <div>
+
+                    <div class="flex justify-between items-center">
+
+                        <label class="label">
+                            Vorwürfe & Sachverhalt *
+                        </label>
+
+                        <button onclick="toggleSpeech()"
+                                class="text-xs text-amber-400">
+
+                            <i id="speechIcon"
+                               class="fa-solid fa-volume-high"></i>
+                            <span id="speechText">
+                                Vorlesen
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                    <textarea id="caseCrime"
+                              rows="5"
+                              class="form-input mt-2"
+                              placeholder="Vorwürfe, Paragraphen und Sachverhalt..."></textarea>
+
+                </div>
+
+
+                <div class="rounded-2xl p-4
+                            bg-slate-950/60 border border-slate-800">
+
+                    <div class="text-xs text-amber-400 font-black uppercase mb-3">
+                        <i class="fa-solid fa-car mr-2"></i>
+                        Fahrzeugdaten
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-3">
+
+                        <input id="vehiclePlate"
+                               class="form-input"
+                               placeholder="Kennzeichen">
+
+                        <input id="vehicleModel"
+                               class="form-input"
+                               placeholder="Modell">
+
+                        <input id="vehicleOwner"
+                               class="form-input"
+                               placeholder="Halter">
+
+                    </div>
+
+                </div>
+
+
+                <div class="rounded-2xl p-4
+                            bg-slate-950/60 border border-slate-800">
+
+                    <div class="flex justify-between items-center mb-3">
+
+                        <div class="text-xs text-amber-400 font-black uppercase">
+                            <i class="fa-solid fa-users mr-2"></i>
+                            Zeugenaussagen
+                        </div>
+
+                        <button onclick="addWitness()"
+                                class="text-xs px-3 py-1.5 rounded-lg
+                                       bg-amber-500/10
+                                       text-amber-400">
+
+                            + Zeuge
+
+                        </button>
+
+                    </div>
+
+                    <div id="witnessList"></div>
+
+                </div>
+
+
+                <div class="grid md:grid-cols-2 gap-4">
+
+                    <div>
+                        <label class="label">
+                            Gesetzliche Maßnahme
+                        </label>
+
+                        <input id="legalPunishment"
+                               class="form-input mt-2"
+                               placeholder="z.B. 45 Min Haft">
+                    </div>
+
+                    <div>
+                        <label class="label">
+                            Erwirkte Strafe / Urteil
+                        </label>
+
+                        <input id="finalPunishment"
+                               class="form-input mt-2"
+                               placeholder="z.B. 20 Min Haft">
+                    </div>
+
+                </div>
+
+
+                <div class="grid md:grid-cols-2 gap-4">
+
+                    <label class="flex justify-between items-center
+                                  p-4 rounded-xl
+                                  bg-slate-950/60 border border-slate-800">
+
+                        <span class="text-sm">
+                            <i class="fa-solid fa-bullhorn text-amber-400 mr-2"></i>
+                            Rechte vorgelesen
+                        </span>
+
+                        <input id="rightsRead"
+                               type="checkbox"
+                               class="accent-amber-500 w-5 h-5">
+
+                    </label>
+
+
+                    <label class="flex justify-between items-center
+                                  p-4 rounded-xl
+                                  bg-slate-950/60 border border-slate-800">
+
+                        <span class="text-sm">
+                            <i class="fa-solid fa-magnifying-glass text-amber-400 mr-2"></i>
+                            Durchsuchung erfolgt
+                        </span>
+
+                        <input id="caseSearched"
+                               type="checkbox"
+                               class="accent-amber-500 w-5 h-5">
+
+                    </label>
+
+                </div>
+
+
+                <div class="rounded-xl
+                            bg-red-500/5
+                            border border-red-500/10 p-4">
+
+                    <label class="flex justify-between items-center">
+
+                        <span class="text-sm text-red-300">
+                            <i class="fa-solid fa-lock mr-2"></i>
+                            Akte vertraulich schützen
+                        </span>
+
+                        <input id="confidential"
+                               type="checkbox"
+                               onchange="toggleCasePin()"
+                               class="accent-red-500 w-5 h-5">
+
+                    </label>
+
+                    <div id="casePinBox" class="hidden mt-3">
+
+                        <input id="casePin"
+                               type="password"
+                               class="form-input"
+                               placeholder="PIN für diese Akte">
+
+                    </div>
+
+                </div>
+
+
+                <div class="grid md:grid-cols-2 gap-4">
+
+                    <div>
+                        <label class="label">
+                            Anwaltskosten €
+                        </label>
+
+                        <input id="caseFees"
+                               type="number"
+                               class="form-input mt-2"
+                               placeholder="5000">
+                    </div>
+
+                    <div>
+                        <label class="label">
+                            Unterzeichner
+                        </label>
+
+                        <input id="caseSignature"
+                               class="form-input mt-2"
+                               placeholder="Name des Anwalts">
+                    </div>
+
+                </div>
+
+
+                <div class="flex flex-wrap gap-3">
+
+                    <button onclick="saveCase()"
+                            class="btn flex-1 min-w-[220px]
+                                   py-4 rounded-xl
+                                   bg-gradient-to-r
+                                   from-amber-400 to-amber-600
+                                   text-slate-950 font-black">
+
+                        <i class="fa-solid fa-floppy-disk mr-2"></i>
+                        Akte speichern
+
+                    </button>
+
+                    <button onclick="correctCaseText()"
+                            class="btn px-5 py-4 rounded-xl
+                                   bg-purple-500/10
+                                   border border-purple-500/20
+                                   text-purple-300">
+
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>
+                        Korrektur
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="xl:col-span-5 glass rounded-3xl p-6">
+
+            <div class="flex justify-between items-center mb-5">
+
+                <div>
+                    <h2 class="font-black">
+                        Aktenarchiv
+                    </h2>
+
+                    <p class="text-xs text-slate-500">
+                        Zentral gespeichert
+                    </p>
+                </div>
+
+                <i class="fa-solid fa-cloud text-amber-400"></i>
+
+            </div>
+
+            <input id="caseSearch"
+                   oninput="renderCases()"
+                   class="form-input mb-4"
+                   placeholder="Akte, Person oder Anwalt suchen...">
+
+            <div id="caseArchive"
+                 class="space-y-3 max-h-[750px] overflow-y-auto">
+
+                <div class="text-center text-slate-600 py-10">
+                    Lade Akten...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     JUSTIZ
+========================================================= -->
+
+<section id="page-justiz" class="page">
+
+    <div class="mb-7">
+
+        <h1 class="text-3xl font-black">
+            Justizdokumente
+        </h1>
+
+        <p class="text-slate-500 text-sm mt-1">
+            Offizielle Dokumente des JUSTITIA-Systems.
+        </p>
+
+    </div>
+
+
+    <div class="grid xl:grid-cols-12 gap-6">
+
+        <div class="xl:col-span-4 glass rounded-3xl p-6">
+
+            <div class="text-xs text-slate-500 uppercase font-bold mb-2">
+                Dokumenttyp
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mb-6">
+
+                <button onclick="setDocumentType('haftbefehl')"
+                        id="typeHaft"
+                        class="docType activeDocType p-3 rounded-xl
+                               bg-red-500/10 border border-red-500/20
+                               text-red-400 text-xs font-bold">
+
+                    <i class="fa-solid fa-handcuffs block text-lg mb-1"></i>
+                    Haftbefehl
+
+                </button>
+
+                <button onclick="setDocumentType('fahndung')"
+                        id="typeFahndung"
+                        class="docType p-3 rounded-xl
+                               bg-blue-500/10 border border-blue-500/20
+                               text-blue-400 text-xs font-bold">
+
+                    <i class="fa-solid fa-magnifying-glass block text-lg mb-1"></i>
+                    Fahndung
+
+                </button>
+
+                <button onclick="setDocumentType('durchsuchung')"
+                        id="typeDurch"
+                        class="docType p-3 rounded-xl
+                               bg-purple-500/10 border border-purple-500/20
+                               text-purple-400 text-xs font-bold">
+
+                    <i class="fa-solid fa-house block text-lg mb-1"></i>
+                    Durchsuchung
+
+                </button>
+
+            </div>
+
+
+            <div class="space-y-4">
+
+                <div>
+                    <label class="label">Betroffene Person *</label>
+                    <input id="docPerson"
+                           class="form-input mt-2"
+                           placeholder="Name">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+
+                    <div>
+                        <label class="label">Geburtsdatum</label>
+                        <input id="docBirth"
+                               type="date"
+                               class="form-input mt-2">
+                    </div>
+
+                    <div>
+                        <label class="label">ID / Aktenzeichen</label>
+                        <input id="docId"
+                               class="form-input mt-2"
+                               placeholder="ID">
+                    </div>
+
+                </div>
+
+                <div>
+                    <label class="label">Ort / Gegenstand</label>
+                    <input id="docLocation"
+                           class="form-input mt-2"
+                           placeholder="Ort oder Gegenstand">
+                </div>
+
+                <div>
+                    <label class="label">Tatvorwürfe / Paragraphen *</label>
+                    <textarea id="docCrimes"
+                              rows="4"
+                              class="form-input mt-2"
+                              placeholder="z.B. § 223 StGB ..."></textarea>
+                </div>
+
+                <div>
+                    <label class="label">Begründung *</label>
+                    <textarea id="docReason"
+                              rows="5"
+                              class="form-input mt-2"
+                              placeholder="Begründung des Beschlusses..."></textarea>
+                </div>
+
+                <div>
+                    <label class="label">Anordnender Richter *</label>
+                    <input id="docJudge"
+                           class="form-input mt-2"
+                           placeholder="Name des Richters">
+                </div>
+
+                <div>
+                    <label class="label">Richter-ID</label>
+                    <input id="docJudgeId"
+                           class="form-input mt-2"
+                           placeholder="RIC-001">
+                </div>
+
+                <div>
+                    <label class="label">Dienststelle / Gericht</label>
+                    <input id="docOffice"
+                           class="form-input mt-2"
+                           value="JUSTITIA – Kanzlei & Justiz">
+                </div>
+
+                <div>
+                    <label class="label">Priorität</label>
+
+                    <select id="docPriority"
+                            class="form-input mt-2">
+
+                        <option value="Normal">Normal</option>
+                        <option value="Dringend">Dringend</option>
+                        <option value="Sofort">Sofort</option>
+
+                    </select>
+
+                </div>
+
+                <button onclick="openSignatureModal()"
+                        class="btn w-full py-4 rounded-xl
+                               bg-gradient-to-r from-slate-100 to-slate-300
+                               text-slate-950 font-black">
+
+                    <i class="fa-solid fa-signature mr-2"></i>
+                    Dokument unterschreiben & ausfertigen
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="xl:col-span-8 glass rounded-3xl p-6">
+
+            <div class="flex items-center justify-between mb-5">
+
+                <div>
+                    <h2 class="font-black">
+                        Dokumentenvorschau
+                    </h2>
+
+                    <p class="text-xs text-slate-500">
+                        Live-Vorschau
+                    </p>
+                </div>
+
+                <button onclick="printDocument()"
+                        class="btn px-4 py-2 rounded-xl
+                               bg-slate-800 text-xs">
+
+                    <i class="fa-solid fa-print mr-2"></i>
+                    Drucken
+
+                </button>
+
+            </div>
+
+            <div id="documentPreview">
+
+                <div class="flex items-center justify-center
+                            min-h-[600px] text-slate-600">
+
+                    <div class="text-center">
+
+                        <i class="fa-solid fa-file-shield text-6xl mb-5"></i>
+
+                        <div>
+                            Dokumentdaten eingeben,
+                            um die Vorschau zu sehen.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="glass rounded-3xl p-6 mt-6">
+
+        <div class="flex justify-between items-center mb-5">
+
+            <div>
+                <h2 class="font-black">
+                    Zentrale Justizdokumente
+                </h2>
+
+                <p class="text-xs text-slate-500">
+                    In Firebase gespeicherte Dokumente
+                </p>
+            </div>
+
+            <div class="relative w-72">
+
+                <i class="fa-solid fa-magnifying-glass
+                          absolute left-3 top-1/2
+                          -translate-y-1/2
+                          text-slate-600"></i>
+
+                <input id="documentSearch"
+                       oninput="renderDocuments()"
+                       class="form-input pl-10"
+                       placeholder="Dokument suchen...">
+
+            </div>
+
+        </div>
+
+        <div id="documentArchive"
+             class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     RECHNUNG
+========================================================= -->
+
+<section id="page-rechnung" class="page">
+
+    <div class="mb-7">
+
+        <h1 class="text-3xl font-black">
+            Rechnungsverwaltung
+        </h1>
+
+        <p class="text-slate-500 text-sm">
+            Kanzleirechnungen erstellen und als PDF exportieren.
+        </p>
+
+    </div>
+
+
+    <div class="grid xl:grid-cols-2 gap-6">
+
+        <div class="glass rounded-3xl p-6">
+
+            <h2 class="font-black text-xl mb-5">
+                Neue Rechnung
+            </h2>
+
+            <div class="space-y-4">
+
+                <div>
+                    <label class="label">Kanzlei</label>
+                    <input id="invoiceLawyer"
+                           class="form-input mt-2"
+                           value="JUSTITIA">
+                </div>
+
+                <div>
+                    <label class="label">Mandant</label>
+                    <input id="invoiceClient"
+                           class="form-input mt-2"
+                           placeholder="Name des Mandanten">
+                </div>
+
+                <div>
+                    <label class="label">Leistung</label>
+                    <input id="invoiceService"
+                           class="form-input mt-2"
+                           placeholder="Rechtsberatung / Verteidigung">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+
+                    <div>
+                        <label class="label">Menge</label>
+                        <input id="invoiceQty"
+                               type="number"
+                               value="1"
+                               min="1"
+                               class="form-input mt-2">
+                    </div>
+
+                    <div>
+                        <label class="label">Einzelpreis €</label>
+                        <input id="invoicePrice"
+                               type="number"
+                               class="form-input mt-2"
+                               placeholder="5000">
+                    </div>
+
+                </div>
+
+                <div>
+                    <label class="label">Notiz</label>
+                    <textarea id="invoiceNote"
+                              class="form-input mt-2"
+                              rows="4"
+                              placeholder="Zusätzliche Informationen..."></textarea>
+                </div>
+
+                <button onclick="generateInvoice()"
+                        class="btn w-full py-4 rounded-xl
+                               bg-gradient-to-r
+                               from-amber-400 to-amber-600
+                               text-slate-950 font-black">
+
+                    <i class="fa-solid fa-file-invoice mr-2"></i>
+                    Rechnung erstellen
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="glass rounded-3xl p-6">
+
+            <div class="flex justify-between items-center mb-5">
+
+                <h2 class="font-black text-xl">
+                    Vorschau
+                </h2>
+
+                <button onclick="downloadInvoicePDF()"
+                        class="btn px-4 py-2 rounded-xl
+                               bg-red-500/10
+                               border border-red-500/20
+                               text-red-400 text-xs">
+
+                    <i class="fa-solid fa-file-pdf mr-2"></i>
+                    PDF
+
+                </button>
+
+            </div>
+
+            <div id="invoicePreview"
+                 class="bg-white text-slate-900 rounded-xl p-8 min-h-[600px]">
+
+                <div class="text-center text-slate-400 py-32">
+                    Noch keine Rechnung erstellt.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     DISCORD BERICHT
+========================================================= -->
+
+<section id="page-bericht" class="page">
+
+    <div class="mb-7">
+
+        <h1 class="text-3xl font-black">
+            Discord-Bericht
+        </h1>
+
+        <p class="text-slate-500 text-sm">
+            Aus Kanzleidaten automatisch einen Discord-Bericht erstellen.
+        </p>
+
+    </div>
+
+
+    <div class="grid xl:grid-cols-2 gap-6">
+
+        <div class="glass rounded-3xl p-6">
+
+            <h2 class="font-black mb-5">
+                Berichtsdaten
+            </h2>
+
+            <div class="space-y-4">
+
+                <input id="reportLawyer"
+                       class="form-input"
+                       placeholder="Anwalt">
+
+                <input id="reportClient"
+                       class="form-input"
+                       placeholder="Mandant">
+
+                <textarea id="reportText"
+                          rows="10"
+                          class="form-input"
+                          placeholder="Sachverhalt..."></textarea>
+
+                <button onclick="generateDiscordReport()"
+                        class="btn w-full py-4 rounded-xl
+                               bg-indigo-600 hover:bg-indigo-500
+                               font-black">
+
+                    <i class="fa-brands fa-discord mr-2"></i>
+                    Discord-Bericht erstellen
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="glass rounded-3xl p-6">
+
+            <div class="flex justify-between items-center mb-4">
+
+                <h2 class="font-black">
+                    Ausgabe
+                </h2>
+
+                <button onclick="copyReport()"
+                        class="text-xs text-indigo-400">
+
+                    <i class="fa-solid fa-copy mr-1"></i>
+                    Kopieren
+
+                </button>
+
+            </div>
+
+            <textarea id="discordOutput"
+                      readonly
+                      class="form-input h-[450px] font-mono text-xs"
+                      placeholder="Hier erscheint der Discord-Bericht..."></textarea>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     SUCHE
+========================================================= -->
+
+<section id="page-suche" class="page">
+
+    <div class="mb-7">
+
+        <h1 class="text-3xl font-black">
+            Globale Suche
+        </h1>
+
+        <p class="text-slate-500 text-sm">
+            Durchsucht Kanzleiakten und Justizdokumente.
+        </p>
+
+    </div>
+
+
+    <div class="glass rounded-3xl p-6">
+
+        <div class="relative">
+
+            <i class="fa-solid fa-magnifying-glass
+                      absolute left-4 top-1/2
+                      -translate-y-1/2
+                      text-amber-400"></i>
+
+            <input id="globalSearch"
+                   oninput="globalSearch()"
+                   class="form-input pl-12 text-lg py-4"
+                   placeholder="Person, Aktenzeichen, Richter, Anwalt...">
+
+        </div>
+
+        <div id="globalResults"
+             class="mt-6 grid md:grid-cols-2 gap-4">
+
+            <div class="text-center text-slate-600 py-10 col-span-full">
+                Suche starten...
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+</main>
+
+<footer class="border-t border-slate-800 p-6 text-center text-xs text-slate-600">
+    <span class="text-amber-500 font-black">JUSTITIA</span>
+    — Kanzlei & Justizsystem • 2026
+</footer>
+
+</div>
+</div>
+
+
+<!-- =========================================================
+     SIGNATURE MODAL
+========================================================= -->
+
+<div id="signatureModal"
+     class="modal fixed inset-0 z-[200]
+            hidden items-center justify-center p-4">
+
+    <div class="glass rounded-3xl p-6 w-full max-w-2xl">
+
+        <div class="flex justify-between items-center mb-5">
+
+            <div>
+                <h2 class="text-xl font-black">
+                    Digitale Unterschrift
+                </h2>
+
+                <p class="text-xs text-slate-500">
+                    Mit Maus oder Touch unterschreiben.
+                </p>
+            </div>
+
+            <button onclick="closeSignatureModal()"
+                    class="w-10 h-10 rounded-xl
+                           bg-slate-800">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <canvas id="signatureCanvas"
+                width="700"
+                height="260"
+                class="w-full border border-slate-700"></canvas>
+
+        <div class="flex gap-3 mt-4">
+
+            <button onclick="clearSignature()"
+                    class="btn flex-1 py-3 rounded-xl
+                           bg-slate-800">
+
+                Löschen
+
+            </button>
+
+            <button onclick="confirmSignature()"
+                    class="btn flex-[2] py-3 rounded-xl
+                           bg-amber-400 text-slate-950 font-black">
+
+                <i class="fa-solid fa-check mr-2"></i>
+                Dokument ausfertigen
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     DOCUMENT VIEW MODAL
+========================================================= -->
+
+<div id="documentModal"
+     class="modal fixed inset-0 z-[150]
+            hidden items-center justify-center p-4">
+
+    <div class="bg-slate-900 rounded-3xl
+                max-w-6xl w-full max-h-[94vh]
+                overflow-y-auto p-5">
+
+        <div class="flex justify-between items-center mb-5">
+
+            <h2 class="font-black">
+                Dokumentansicht
+            </h2>
+
+            <button onclick="closeDocumentModal()"
+                    class="w-10 h-10 rounded-xl bg-slate-800">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <div id="documentModalContent"></div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div id="toast"
+     class="fixed bottom-6 right-6 z-[500]
+            hidden max-w-sm">
+
+    <div class="glass-gold rounded-2xl px-5 py-4 shadow-2xl">
+
+        <div class="flex items-center gap-3">
+
+            <div id="toastIcon"
+                 class="text-amber-400 text-xl">
+
+                <i class="fa-solid fa-circle-check"></i>
+
+            </div>
+
+            <div>
+
+                <div id="toastTitle"
+                     class="font-bold">
+                    Erfolgreich
+                </div>
+
+                <div id="toastMessage"
+                     class="text-xs text-slate-400">
+                    Vorgang erfolgreich.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBxBSSCjqDSMF_XvzveIe5PKjNCn-HYbuY",
+    authDomain: "cuebersicht.firebaseapp.com",
+    databaseURL: "https://cuebersicht-default-rtdb.firebaseio.com/",
+    projectId: "cuebersicht",
+    storageBucket: "cuebersicht.firebasestorage.app",
+    messagingSenderId: "202282803450",
+    appId: "1:202282803450:web:5986045a4dbb6a7dd96943",
+    measurementId: "G-CYY70TC3BW"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+let allCases = [];
+let allDocuments = [];
+let currentDocumentType = "haftbefehl";
+let currentEditingCase = null;
+let currentSignature = null;
+let currentInvoice = null;
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+const SYSTEM_PASSWORD = "KanzleiJustitia";
+
+function login(){
+
+    const input = document.getElementById("loginPassword");
+    const error = document.getElementById("loginError");
+
+    if(input.value === SYSTEM_PASSWORD){
+
+        localStorage.setItem(
+            "justitiaLoggedIn",
+            "true"
+        );
+
+        error.classList.add("hidden");
+
+        openApplication();
+
+    }else{
+
+        error.textContent =
+            "Falsches Systempasswort.";
+
+        error.classList.remove("hidden");
+
+        input.value = "";
+
+        input.focus();
+
+    }
+}
+
+function toggleLoginPassword(){
+
+    const input =
+        document.getElementById("loginPassword");
+
+    const icon =
+        document.getElementById("loginEye");
+
+    if(input.type === "password"){
+
+        input.type = "text";
+        icon.className = "fa-solid fa-eye-slash";
+
+    }else{
+
+        input.type = "password";
+        icon.className = "fa-solid fa-eye";
+
+    }
+
+}
+
+function openApplication(){
+
+    document
+        .getElementById("loginScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("application")
+        .classList.remove("hidden");
+
+    loadFirebaseData();
+
+}
+
+function logout(){
+
+    localStorage.removeItem(
+        "justitiaLoggedIn"
+    );
+
+    location.reload();
+
+}
+
+function checkLogin(){
+
+    if(
+        localStorage.getItem("justitiaLoggedIn")
+        === "true"
+    ){
+
+        openApplication();
+
+    }
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+const pageTitles = {
+
+    dashboard:"Dashboard",
+    akten:"Kanzleiakten",
+    justiz:"Justizdokumente",
+    rechnung:"Rechnungsverwaltung",
+    bericht:"Discord-Bericht",
+    suche:"Globale Suche"
+
+};
+
+function showPage(page,button){
+
+    document
+        .querySelectorAll(".page")
+        .forEach(el =>
+            el.classList.remove("active")
+        );
+
+    const target =
+        document.getElementById(
+            "page-" + page
+        );
+
+    if(target){
+        target.classList.add("active");
+    }
+
+    document
+        .querySelectorAll(".nav-btn")
+        .forEach(el =>
+            el.classList.remove("active")
+        );
+
+    if(button){
+        button.classList.add("active");
+    }
+
+    document.getElementById("pageTitle")
+        .textContent =
+        pageTitles[page] || page;
+
+    document
+        .getElementById("sidebar")
+        .classList.remove("open");
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+function showPageByName(page){
+
+    const button =
+        [...document.querySelectorAll(".nav-btn")]
+        .find(btn =>
+            btn.getAttribute("onclick")
+            ?.includes(`'${page}'`)
+        );
+
+    showPage(page,button);
+
+}
+
+function toggleSidebar(){
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+/* =========================================================
+   FIREBASE STATUS
+========================================================= */
+
+db.ref(".info/connected").on(
+    "value",
+    snap => {
+
+        const online = snap.val() === true;
+
+        const sidebar =
+            document.getElementById(
+                "sidebarDbStatus"
+            );
+
+        const top =
+            document.getElementById(
+                "topDbStatus"
+            );
+
+        const dashboard =
+            document.getElementById(
+                "dashboardCloud"
+            );
+
+        if(online){
+
+            sidebar.innerHTML =
+                `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                 Cloud verbunden`;
+
+            top.className =
+                "hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-xs text-emerald-400";
+
+            top.innerHTML =
+                `<span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                 Online`;
+
+            dashboard.textContent =
+                "Verbunden";
+
+        }else{
+
+            sidebar.innerHTML =
+                `<span class="w-2 h-2 rounded-full bg-red-500"></span>
+                 Offline`;
+
+            top.className =
+                "hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/10 text-xs text-red-400";
+
+            top.innerHTML =
+                `<span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                 Offline`;
+
+            dashboard.textContent =
+                "Offline";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   FIREBASE DATA
+========================================================= */
+
+function loadFirebaseData(){
+
+    db.ref("records").on(
+        "value",
+        snapshot => {
+
+            allCases = [];
+
+            const data =
+                snapshot.val();
+
+            if(data){
+
+                Object.entries(data)
+                    .forEach(([id,record]) => {
+
+                        record.id = id;
+
+                        allCases.push(record);
+
+                    });
+
+            }
+
+            allCases.sort(
+                (a,b) =>
+                    (b.timestamp || 0)
+                    -
+                    (a.timestamp || 0)
+            );
+
+            renderCases();
+            updateStats();
+            globalSearch();
+
+        }
+    );
+
+
+    db.ref("documents").on(
+        "value",
+        snapshot => {
+
+            allDocuments = [];
+
+            const data =
+                snapshot.val();
+
+            if(data){
+
+                Object.entries(data)
+                    .forEach(([id,doc]) => {
+
+                        doc.id = id;
+
+                        allDocuments.push(doc);
+
+                    });
+
+            }
+
+            allDocuments.sort(
+                (a,b) =>
+                    (b.timestamp || 0)
+                    -
+                    (a.timestamp || 0)
+            );
+
+            renderDocuments();
+            updateStats();
+            globalSearch();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats(){
+
+    const revenue =
+        allCases.reduce(
+            (sum,item) =>
+                sum + (Number(item.rawFees) || 0),
+            0
+        );
+
+    document.getElementById(
+        "statCases"
+    ).textContent =
+        allCases.length;
+
+    document.getElementById(
+        "statDocuments"
+    ).textContent =
+        allDocuments.length;
+
+    document.getElementById(
+        "statRevenue"
+    ).textContent =
+        revenue.toLocaleString("de-DE")
+        + " €";
+
+}
+
+
+/* =========================================================
+   CASE / AKTEN
+========================================================= */
+
+function resetCaseForm(){
+
+    currentEditingCase = null;
+
+    [
+        "caseLawyer",
+        "caseSuspect",
+        "caseOfficers",
+        "caseCrime",
+        "vehiclePlate",
+        "vehicleModel",
+        "vehicleOwner",
+        "legalPunishment",
+        "finalPunishment",
+        "caseFees",
+        "caseSignature",
+        "casePin"
+    ].forEach(id => {
+
+        const el =
+            document.getElementById(id);
+
+        if(el) el.value = "";
+
+    });
+
+    document.getElementById(
+        "rightsRead"
+    ).checked = false;
+
+    document.getElementById(
+        "caseSearched"
+    ).checked = false;
+
+    document.getElementById(
+        "confidential"
+    ).checked = false;
+
+    document.getElementById(
+        "casePinBox"
+    ).classList.add("hidden");
+
+    document.getElementById(
+        "witnessList"
+    ).innerHTML = "";
+
+}
+
+function toggleCasePin(){
+
+    const checked =
+        document.getElementById(
+            "confidential"
+        ).checked;
+
+    document.getElementById(
+        "casePinBox"
+    ).classList.toggle(
+        "hidden",
+        !checked
+    );
+
+}
+
+function addWitness(){
+
+    const id =
+        "witness_" + Date.now();
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.id = id;
+
+    wrapper.className =
+        "p-3 rounded-xl bg-slate-950 border border-slate-800 mb-3";
+
+    wrapper.innerHTML = `
+
+        <div class="flex gap-2 mb-2">
+
+            <input
+                class="form-input witness-name"
+                placeholder="Zeugenname">
+
+            <select class="form-input witness-credibility">
+
+                <option>Sehr glaubwürdig</option>
+                <option selected>Glaubwürdig</option>
+                <option>Neutral</option>
+                <option>Zweifelhaft</option>
+                <option>Unglaubwürdig</option>
+
+            </select>
+
+            <button
+                onclick="document.getElementById('${id}').remove()"
+                class="px-3 text-red-400">
+
+                <i class="fa-solid fa-trash"></i>
+
+            </button>
+
+        </div>
+
+        <textarea
+            class="form-input witness-statement"
+            rows="2"
+            placeholder="Aussage des Zeugen..."></textarea>
+
+    `;
+
+    document
+        .getElementById("witnessList")
+        .appendChild(wrapper);
+
+}
+
+function getWitnesses(){
+
+    return [
+        ...document.querySelectorAll(
+            "#witnessList > div"
+        )
+    ].map(el => ({
+        name:
+            el.querySelector(".witness-name")
+                ?.value.trim() || "Anonym",
+
+        credibility:
+            el.querySelector(".witness-credibility")
+                ?.value || "Neutral",
+
+        statement:
+            el.querySelector(".witness-statement")
+                ?.value.trim() || ""
+    }));
+
+}
+
+async function saveCase(){
+
+    const lawyer =
+        document.getElementById(
+            "caseLawyer"
+        ).value.trim();
+
+    const suspect =
+        document.getElementById(
+            "caseSuspect"
+        ).value.trim();
+
+    const crime =
+        document.getElementById(
+            "caseCrime"
+        ).value.trim();
+
+    if(!lawyer || !suspect || !crime){
+
+        showToast(
+            "Fehlende Angaben",
+            "Bitte Pflichtfelder ausfüllen.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const confidential =
+        document.getElementById(
+            "confidential"
+        ).checked;
+
+    const pin =
+        document.getElementById(
+            "casePin"
+        ).value.trim();
+
+    if(confidential && !pin){
+
+        showToast(
+            "PIN fehlt",
+            "Vertrauliche Akten benötigen einen PIN.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const now =
+        new Date();
+
+    const record = {
+
+        lawyer,
+
+        suspect,
+
+        officers:
+            document.getElementById(
+                "caseOfficers"
+            ).value.trim(),
+
+        crime,
+
+        legalPunishment:
+            document.getElementById(
+                "legalPunishment"
+            ).value.trim(),
+
+        finalPunishment:
+            document.getElementById(
+                "finalPunishment"
+            ).value.trim(),
+
+        rawFees:
+            Number(
+                document.getElementById(
+                    "caseFees"
+                ).value
+            ) || 0,
+
+        signature:
+            document.getElementById(
+                "caseSignature"
+            ).value.trim(),
+
+        rightsRead:
+            document.getElementById(
+                "rightsRead"
+            ).checked,
+
+        searched:
+            document.getElementById(
+                "caseSearched"
+            ).checked,
+
+        confidential,
+
+        casePin:
+            confidential ? pin : null,
+
+        vehicle:{
+            plate:
+                document.getElementById(
+                    "vehiclePlate"
+                ).value.trim(),
+
+            model:
+                document.getElementById(
+                    "vehicleModel"
+                ).value.trim(),
+
+            owner:
+                document.getElementById(
+                    "vehicleOwner"
+                ).value.trim()
+        },
+
+        witnesses:
+            getWitnesses(),
+
+        date:
+            now.toLocaleDateString(
+                "de-DE"
+            ),
+
+        time:
+            now.toLocaleTimeString(
+                "de-DE",
+                {
+                    hour:"2-digit",
+                    minute:"2-digit"
+                }
+            ),
+
+        timestamp:
+            Date.now()
+
+    };
+
+    try{
+
+        if(currentEditingCase){
+
+            await db.ref(
+                "records/" +
+                currentEditingCase
+            ).set(record);
+
+            showToast(
+                "Akte aktualisiert",
+                "Die Akte wurde gespeichert."
+            );
+
+        }else{
+
+            await db.ref(
+                "records"
+            ).push(record);
+
+            showToast(
+                "Akte gespeichert",
+                "Die Akte wurde zentral gespeichert."
+            );
+
+        }
+
+        currentEditingCase = null;
+
+        generateDiscordFromCase(record);
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Fehler",
+            "Die Akte konnte nicht gespeichert werden.",
+            "error"
+        );
+
+    }
+
+}
+
+function renderCases(){
+
+    const container =
+        document.getElementById(
+            "caseArchive"
+        );
+
+    if(!container) return;
+
+    const query =
+        (
+            document.getElementById(
+                "caseSearch"
+            )?.value || ""
+        ).toLowerCase();
+
+    const filtered =
+        allCases.filter(c =>
+            [
+                c.lawyer,
+                c.suspect,
+                c.officers,
+                c.crime
+            ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        );
+
+    if(!filtered.length){
+
+        container.innerHTML = `
+            <div class="text-center text-slate-600 py-12">
+                <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                <div>Keine Akten gefunden.</div>
+            </div>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML =
+        filtered.map(c => `
+
+        <div class="p-4 rounded-2xl
+                    bg-slate-950/70
+                    border border-slate-800
+                    hover:border-amber-500/20">
+
+            <div class="flex justify-between gap-3">
+
+                <div>
+
+                    <div class="text-[10px]
+                                uppercase
+                                text-slate-600">
+                        Beschuldigter
+                    </div>
+
+                    <div class="font-bold">
+                        ${escapeHtml(c.suspect)}
+                    </div>
+
+                </div>
+
+                ${
+                    c.confidential
+                    ?
+                    `<span class="text-[9px]
+                                 h-fit
+                                 px-2 py-1
+                                 rounded
+                                 bg-red-500/10
+                                 text-red-400">
+                        <i class="fa-solid fa-lock"></i>
+                        Vertraulich
+                     </span>`
+                    :
+                    ""
+                }
+
+            </div>
+
+            <div class="text-xs text-slate-500 mt-3 line-clamp-2">
+                ${escapeHtml(c.crime || "")}
+            </div>
+
+            <div class="flex items-center
+                        justify-between
+                        mt-4 pt-3
+                        border-t border-slate-800">
+
+                <span class="text-[10px] text-slate-600">
+                    ${c.date || ""} ${c.time || ""}
+                </span>
+
+                <div class="flex gap-2">
+
+                    <button
+                        onclick="viewCase('${c.id}')"
+                        class="text-xs text-blue-400">
+
+                        <i class="fa-solid fa-eye"></i>
+
+                    </button>
+
+                    <button
+                        onclick="editCase('${c.id}')"
+                        class="text-xs text-amber-400">
+
+                        <i class="fa-solid fa-pen"></i>
+
+                    </button>
+
+                    <button
+                        onclick="deleteCase('${c.id}')"
+                        class="text-xs text-red-400">
+
+                        <i class="fa-solid fa-trash"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `).join("");
+
+}
+
+function editCase(id){
+
+    const c =
+        allCases.find(
+            item => item.id === id
+        );
+
+    if(!c) return;
+
+    if(c.confidential){
+
+        const pin =
+            prompt(
+                "Diese Akte ist vertraulich. PIN:"
+            );
+
+        if(pin !== c.casePin){
+
+            showToast(
+                "Zugriff verweigert",
+                "Falscher PIN.",
+                "error"
+            );
+
+            return;
+
+        }
+
+    }
+
+    currentEditingCase = id;
+
+    document.getElementById(
+        "caseLawyer"
+    ).value = c.lawyer || "";
+
+    document.getElementById(
+        "caseSuspect"
+    ).value = c.suspect || "";
+
+    document.getElementById(
+        "caseOfficers"
+    ).value = c.officers || "";
+
+    document.getElementById(
+        "caseCrime"
+    ).value = c.crime || "";
+
+    document.getElementById(
+        "legalPunishment"
+    ).value = c.legalPunishment || "";
+
+    document.getElementById(
+        "finalPunishment"
+    ).value = c.finalPunishment || "";
+
+    document.getElementById(
+        "caseFees"
+    ).value = c.rawFees || "";
+
+    document.getElementById(
+        "caseSignature"
+    ).value = c.signature || "";
+
+    document.getElementById(
+        "rightsRead"
+    ).checked = !!c.rightsRead;
+
+    document.getElementById(
+        "caseSearched"
+    ).checked = !!c.searched;
+
+    document.getElementById(
+        "confidential"
+    ).checked = !!c.confidential;
+
+    document.getElementById(
+        "casePin"
+    ).value = c.casePin || "";
+
+    toggleCasePin();
+
+    document.getElementById(
+        "vehiclePlate"
+    ).value =
+        c.vehicle?.plate || "";
+
+    document.getElementById(
+        "vehicleModel"
+    ).value =
+        c.vehicle?.model || "";
+
+    document.getElementById(
+        "vehicleOwner"
+    ).value =
+        c.vehicle?.owner || "";
+
+    const list =
+        document.getElementById(
+            "witnessList"
+        );
+
+    list.innerHTML = "";
+
+    (c.witnesses || [])
+        .forEach(w => {
+
+            addWitness();
+
+            const last =
+                list.lastElementChild;
+
+            last.querySelector(
+                ".witness-name"
+            ).value = w.name;
+
+            last.querySelector(
+                ".witness-credibility"
+            ).value =
+                w.credibility;
+
+            last.querySelector(
+                ".witness-statement"
+            ).value =
+                w.statement;
+
+        });
+
+    showPageByName("akten");
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+async function deleteCase(id){
+
+    if(!confirm(
+        "Diese Akte wirklich löschen?"
+    )) return;
+
+    try{
+
+        await db.ref(
+            "records/" + id
+        ).remove();
+
+        showToast(
+            "Akte gelöscht",
+            "Die Akte wurde entfernt."
+        );
+
+    }catch(e){
+
+        showToast(
+            "Fehler",
+            "Akte konnte nicht gelöscht werden.",
+            "error"
+        );
+
+    }
+
+}
+
+function viewCase(id){
+
+    const c =
+        allCases.find(
+            x => x.id === id
+        );
+
+    if(!c) return;
+
+    if(c.confidential){
+
+        const pin =
+            prompt(
+                "Diese Akte ist vertraulich. PIN:"
+            );
+
+        if(pin !== c.casePin){
+
+            showToast(
+                "Zugriff verweigert",
+                "Falscher PIN.",
+                "error"
+            );
+
+            return;
+
+        }
+
+    }
+
+    const witnessText =
+        (c.witnesses || [])
+        .map(
+            (w,i) =>
+                `<div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                    <b>Zeuge #${i+1}: ${escapeHtml(w.name)}</b>
+                    <div class="text-xs text-slate-500 mt-1">
+                        ${escapeHtml(w.credibility)}
+                    </div>
+                    <p class="text-sm mt-2">
+                        ${escapeHtml(w.statement)}
+                    </p>
+                 </div>`
+        ).join("");
+
+    alert(
+`JUSTITIA – AKTENANSICHT
+
+Beschuldigter:
+${c.suspect}
+
+Anwalt:
+${c.lawyer}
+
+Beamte:
+${c.officers || "Keine Angaben"}
+
+Sachverhalt:
+${c.crime}
+
+Gesetzliche Maßnahme:
+${c.legalPunishment || "Keine Angaben"}
+
+Erwirkte Strafe:
+${c.finalPunishment || "Keine Angaben"}
+
+Anwaltskosten:
+${c.rawFees || 0} €
+
+Rechte vorgelesen:
+${c.rightsRead ? "Ja" : "Nein"}
+
+Durchsuchung:
+${c.searched ? "Ja" : "Nein"}`
+    );
+
+}
+
+
+/* =========================================================
+   SPEECH
+========================================================= */
+
+let speaking = false;
+
+function toggleSpeech(){
+
+    if(!("speechSynthesis" in window)){
+
+        alert(
+            "Vorlesefunktion wird nicht unterstützt."
+        );
+
+        return;
+
+    }
+
+    if(speaking){
+
+        speechSynthesis.cancel();
+
+        speaking = false;
+
+        document.getElementById(
+            "speechText"
+        ).textContent = "Vorlesen";
+
+        return;
+
+    }
+
+    const text =
+        document.getElementById(
+            "caseCrime"
+        ).value.trim();
+
+    if(!text){
+
+        showToast(
+            "Kein Text",
+            "Bitte zuerst einen Sachverhalt eingeben.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const utterance =
+        new SpeechSynthesisUtterance(text);
+
+    utterance.lang = "de-DE";
+
+    utterance.onstart = () => {
+
+        speaking = true;
+
+        document.getElementById(
+            "speechText"
+        ).textContent = "Stoppen";
+
+    };
+
+    utterance.onend = () => {
+
+        speaking = false;
+
+        document.getElementById(
+            "speechText"
+        ).textContent = "Vorlesen";
+
+    };
+
+    speechSynthesis.speak(
+        utterance
+    );
+
+}
+
+
+/* =========================================================
+   LANGUAGETOOL
+========================================================= */
+
+async function correctCaseText(){
+
+    const textarea =
+        document.getElementById(
+            "caseCrime"
+        );
+
+    const text =
+        textarea.value.trim();
+
+    if(!text){
+
+        showToast(
+            "Kein Text",
+            "Bitte zuerst einen Text eingeben.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    showToast(
+        "Korrektur",
+        "Text wird geprüft..."
+    );
+
+    try{
+
+        const response =
+            await fetch(
+                "https://api.languagetool.org/v2/check",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":
+                            "application/x-www-form-urlencoded"
+                    },
+                    body:
+                        new URLSearchParams({
+                            text,
+                            language:"de-DE"
+                        })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        let corrected = text;
+
+        [...data.matches]
+            .sort(
+                (a,b) =>
+                    b.offset-a.offset
+            )
+            .forEach(match => {
+
+                if(
+                    match.replacements &&
+                    match.replacements.length
+                ){
+
+                    const replacement =
+                        match.replacements[0].value;
+
+                    corrected =
+                        corrected.slice(
+                            0,
+                            match.offset
+                        )
+                        +
+                        replacement
+                        +
+                        corrected.slice(
+                            match.offset +
+                            match.length
+                        );
+
+                }
+
+            });
+
+        textarea.value =
+            corrected;
+
+        showToast(
+            "Korrektur abgeschlossen",
+            `${data.matches.length} Stelle(n) geprüft.`
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Fehler",
+            "Korrekturdienst nicht erreichbar.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DISCORD REPORT
+========================================================= */
+
+function generateDiscordFromCase(c){
+
+    let witnesses =
+        (c.witnesses || [])
+        .map(
+            (w,i) =>
+`• **Zeuge #${i+1} – ${w.name}**
+  Glaubwürdigkeit: ${w.credibility}
+  Aussage: ${w.statement}`
+        )
+        .join("\n");
+
+    if(!witnesses)
+        witnesses =
+            "Keine Zeugen erfasst.";
+
+    const report =
+`⚖️ **JUSTITIA — VERTEIDIGUNGSPROTOKOLL** ⚖️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 **Datum:** ${c.date || ""}
+🕐 **Uhrzeit:** ${c.time || ""}
+
+👨‍⚖️ **Zuständiger Anwalt:**
+${c.lawyer}
+
+👤 **Beschuldigter / Mandant:**
+${c.suspect}
+
+👮 **Zuständige Beamte:**
+${c.officers || "Keine Angaben"}
+
+📋 **VORWÜRFE & SACHVERHALT**
+\`\`\`
+${c.crime}
+\`\`\`
+
+🚗 **FAHRZEUG**
+• Kennzeichen: ${c.vehicle?.plate || "K.A."}
+• Modell: ${c.vehicle?.model || "K.A."}
+• Halter: ${c.vehicle?.owner || "K.A."}
+
+👥 **ZEUGENAUSSAGEN**
+${witnesses}
+
+⚖️ **VERFAHRENSPRÜFUNG**
+• Rechte vorgelesen: ${c.rightsRead ? "✅ Ja" : "❌ Nein"}
+• Durchsuchung: ${c.searched ? "✅ Ja" : "❌ Nein"}
+• Vertraulich: ${c.confidential ? "🔒 Ja" : "🌐 Nein"}
+
+📊 **STRAFMAß**
+• Gesetzliche Maßnahme: ${c.legalPunishment || "Keine Angabe"}
+• Erwirkte Strafe / Urteil: ${c.finalPunishment || "Keine Angabe"}
+
+💶 **ANWALTSKOSTEN**
+${Number(c.rawFees || 0).toLocaleString("de-DE")} €
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**JUSTITIA — Kanzlei & Justizsystem**`;
+
+    document.getElementById(
+        "discordOutput"
+    ).value = report;
+
+    showPageByName("bericht");
+
+}
+
+function generateDiscordReport(){
+
+    const lawyer =
+        document.getElementById(
+            "reportLawyer"
+        ).value.trim();
+
+    const client =
+        document.getElementById(
+            "reportClient"
+        ).value.trim();
+
+    const text =
+        document.getElementById(
+            "reportText"
+        ).value.trim();
+
+    if(!lawyer || !client || !text){
+
+        showToast(
+            "Angaben fehlen",
+            "Bitte alle Felder ausfüllen.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const report =
+`⚖️ **JUSTITIA — KANZLEIBERICHT**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👨‍⚖️ **Anwalt:** ${lawyer}
+👤 **Mandant:** ${client}
+
+📋 **SACHVERHALT**
+\`\`\`
+${text}
+\`\`\`
+
+📅 **Erstellt:** ${
+        new Date().toLocaleString("de-DE")
+    }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**JUSTITIA — Kanzlei & Justizsystem**`;
+
+    document.getElementById(
+        "discordOutput"
+    ).value = report;
+
+}
+
+async function copyReport(){
+
+    const text =
+        document.getElementById(
+            "discordOutput"
+        ).value;
+
+    if(!text){
+
+        showToast(
+            "Nichts zu kopieren",
+            "Erstelle zuerst einen Bericht.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    await navigator.clipboard.writeText(
+        text
+    );
+
+    showToast(
+        "Kopiert",
+        "Discord-Bericht wurde kopiert."
+    );
+
+}
+
+
+/* =========================================================
+   JUSTIZDOKUMENTE
+========================================================= */
+
+function setDocumentType(type){
+
+    currentDocumentType = type;
+
+    document
+        .querySelectorAll(".docType")
+        .forEach(el =>
+            el.classList.remove(
+                "ring-2",
+                "ring-white"
+            )
+        );
+
+    const map = {
+        haftbefehl:"typeHaft",
+        fahndung:"typeFahndung",
+        durchsuchung:"typeDurch"
+    };
+
+    document
+        .getElementById(
+            map[type]
+        )
+        .classList.add(
+            "ring-2",
+            "ring-white"
+        );
+
+    updateDocumentPreview();
+
+}
+
+function getDocumentData(){
+
+    const now =
+        new Date();
+
+    return {
+
+        type:
+            currentDocumentType,
+
+        person:
+            document.getElementById(
+                "docPerson"
+            ).value.trim(),
+
+        birth:
+            document.getElementById(
+                "docBirth"
+            ).value,
+
+        personalId:
+            document.getElementById(
+                "docId"
+            ).value.trim(),
+
+        location:
+            document.getElementById(
+                "docLocation"
+            ).value.trim(),
+
+        crimes:
+            document.getElementById(
+                "docCrimes"
+            ).value.trim(),
+
+        reason:
+            document.getElementById(
+                "docReason"
+            ).value.trim(),
+
+        judge:
+            document.getElementById(
+                "docJudge"
+            ).value.trim(),
+
+        judgeId:
+            document.getElementById(
+                "docJudgeId"
+            ).value.trim(),
+
+        office:
+            document.getElementById(
+                "docOffice"
+            ).value.trim(),
+
+        priority:
+            document.getElementById(
+                "docPriority"
+            ).value,
+
+        date:
+            now.toLocaleDateString(
+                "de-DE"
+            ),
+
+        time:
+            now.toLocaleTimeString(
+                "de-DE",
+                {
+                    hour:"2-digit",
+                    minute:"2-digit"
+                }
+            ),
+
+        timestamp:
+            Date.now(),
+
+        signature:
+            currentSignature || null
+
+    };
+
+}
+
+function generateDocumentNumber(){
+
+    const year =
+        new Date().getFullYear();
+
+    const random =
+        Math.floor(
+            10000 +
+            Math.random()*89999
+        );
+
+    return `J-${year}-${random}`;
+
+}
+
+function documentTitle(type){
+
+    if(type === "haftbefehl")
+        return "HAFTBEFEHL";
+
+    if(type === "fahndung")
+        return "FAHNDUNGSANORDNUNG";
+
+    return "DURCHSUCHUNGSBESCHLUSS";
+
+}
+
+function documentClass(type){
+
+    if(type === "haftbefehl")
+        return "doc-red";
+
+    if(type === "fahndung")
+        return "doc-blue";
+
+    return "doc-purple";
+
+}
+
+function renderDocumentHTML(data,number){
+
+    const title =
+        documentTitle(
+            data.type
+        );
+
+    const cls =
+        documentClass(
+            data.type
+        );
+
+    let special = "";
+
+    if(data.type === "haftbefehl"){
+
+        special = `
+            <div class="doc-section">
+
+                <h3>Anordnung</h3>
+
+                <div class="doc-box">
+                    Hiermit wird die Ausschreibung
+                    bzw. der Haftbefehl gegen die
+                    oben bezeichnete Person angeordnet.
+                </div>
+
+            </div>
+        `;
+
+    }
+
+    if(data.type === "fahndung"){
+
+        special = `
+            <div class="doc-section">
+
+                <h3>Fahndungsstatus</h3>
+
+                <div class="doc-box">
+                    Die betreffende Person wird zur
+                    Fahndung ausgeschrieben.
+                    Entsprechende Maßnahmen sind
+                    nach den geltenden Vorgaben
+                    durchzuführen.
+                </div>
+
+            </div>
+        `;
+
+    }
+
+    if(data.type === "durchsuchung"){
+
+        special = `
+            <div class="doc-section">
+
+                <h3>Durchsuchungsumfang</h3>
+
+                <div class="doc-box">
+                    Die Durchsuchung erstreckt sich
+                    auf den angegebenen Ort bzw.
+                    Gegenstand sowie die für das
+                    Verfahren relevanten Bereiche.
+                </div>
+
+            </div>
+        `;
+
+    }
+
+    return `
+
+    <div class="document ${cls}">
+
+        <div class="doc-header">
+
+            <div style="display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+                        gap:30px">
+
+                <div>
+
+                    <div style="font-size:12px;
+                                letter-spacing:.2em;
+                                opacity:.75;
+                                font-weight:900">
+                        JUSTITIA
+                    </div>
+
+                    <div style="font-size:28px;
+                                font-weight:1000;
+                                margin-top:8px">
+                        ${title}
+                    </div>
+
+                    <div style="margin-top:8px;
+                                opacity:.75;
+                                font-size:12px">
+                        Kanzlei & Justizsystem
+                    </div>
+
+                </div>
+
+                <div style="text-align:right">
+
+                    <div style="font-size:11px;
+                                opacity:.7">
+                        DOKUMENTNUMMER
+                    </div>
+
+                    <div style="font-family:monospace;
+                                font-weight:900;
+                                font-size:16px">
+                        ${number}
+                    </div>
+
+                    <div style="margin-top:8px;
+                                font-size:11px">
+                        ${data.date} • ${data.time}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="doc-body">
+
+            <div style="display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-bottom:30px">
+
+                <div>
+
+                    <div style="font-size:10px;
+                                text-transform:uppercase;
+                                letter-spacing:.15em;
+                                color:#64748b">
+                        Priorität
+                    </div>
+
+                    <div style="font-weight:900;
+                                font-size:18px">
+                        ${escapeHtml(data.priority)}
+                    </div>
+
+                </div>
+
+                <div class="seal">
+
+                    JUSTITIA<br>
+                    OFFIZIELL<br>
+                    ${new Date().getFullYear()}
+
+                </div>
+
+            </div>
+
+
+            <div class="doc-section">
+
+                <h3>Betroffene Person</h3>
+
+                <div class="doc-box">
+
+                    <strong>
+                        ${escapeHtml(data.person)}
+                    </strong>
+
+                    <div style="margin-top:8px;
+                                font-size:12px;
+                                color:#64748b">
+
+                        Geburtsdatum:
+                        ${escapeHtml(data.birth || "Keine Angabe")}
+
+                        &nbsp; • &nbsp;
+
+                        ID:
+                        ${escapeHtml(data.personalId || "Keine Angabe")}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="doc-section">
+
+                <h3>Ort / Gegenstand</h3>
+
+                <div class="doc-box">
+                    ${escapeHtml(data.location || "Keine Angabe")}
+                </div>
+
+            </div>
+
+
+            <div class="doc-section">
+
+                <h3>Tatvorwürfe / Paragraphen</h3>
+
+                <div class="doc-box"
+                     style="white-space:pre-wrap">
+                    ${escapeHtml(data.crimes)}
+                </div>
+
+            </div>
+
+
+            ${special}
+
+
+            <div class="doc-section">
+
+                <h3>Begründung</h3>
+
+                <div class="doc-box"
+                     style="white-space:pre-wrap;
+                            line-height:1.6">
+                    ${escapeHtml(data.reason)}
+                </div>
+
+            </div>
+
+
+            <div class="doc-section">
+
+                <h3>Zuständigkeit</h3>
+
+                <div class="doc-box">
+
+                    <strong>
+                        Richter:
+                    </strong>
+                    ${escapeHtml(data.judge)}
+
+                    <br>
+
+                    <strong>
+                        Richter-ID:
+                    </strong>
+                    ${escapeHtml(data.judgeId || "Keine Angabe")}
+
+                    <br>
+
+                    <strong>
+                        Dienststelle:
+                    </strong>
+                    ${escapeHtml(data.office)}
+
+                </div>
+
+            </div>
+
+
+            <div style="display:flex;
+                        justify-content:space-between;
+                        align-items:flex-end;
+                        margin-top:70px">
+
+                <div>
+
+                    <div class="signature-line">
+
+                        ${
+                            data.signature
+                            ?
+                            `<img src="${data.signature}"
+                                  style="width:200px;height:65px;object-fit:contain">`
+                            :
+                            ""
+                        }
+
+                    </div>
+
+                    <div style="font-size:10px;
+                                color:#64748b;
+                                margin-top:8px">
+                        Digitale Unterschrift
+                    </div>
+
+                </div>
+
+
+                <div style="text-align:right;
+                            font-size:10px;
+                            color:#64748b">
+
+                    JUSTITIA<br>
+                    Kanzlei & Justizsystem<br>
+                    Dokument elektronisch erstellt
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+
+}
+
+function updateDocumentPreview(){
+
+    const preview =
+        document.getElementById(
+            "documentPreview"
+        );
+
+    const data =
+        getDocumentData();
+
+    if(!data.person){
+
+        preview.innerHTML = `
+            <div class="flex items-center justify-center
+                        min-h-[600px] text-slate-600">
+
+                <div class="text-center">
+
+                    <i class="fa-solid fa-file-shield text-6xl mb-5"></i>
+
+                    <div>
+                        Betroffene Person eingeben,
+                        um die Vorschau zu sehen.
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+        return;
+
+    }
+
+    preview.innerHTML =
+        renderDocumentHTML(
+            data,
+            "VORSCHAU"
+        );
+
+}
+
+[
+    "docPerson",
+    "docBirth",
+    "docId",
+    "docLocation",
+    "docCrimes",
+    "docReason",
+    "docJudge",
+    "docJudgeId",
+    "docOffice",
+    "docPriority"
+].forEach(id => {
+
+    document
+        .getElementById(id)
+        ?.addEventListener(
+            "input",
+            updateDocumentPreview
+        );
+
+});
+
+
+/* =========================================================
+   SIGNATURE
+========================================================= */
+
+const canvas =
+    document.getElementById(
+        "signatureCanvas"
+    );
+
+const ctx =
+    canvas.getContext("2d");
+
+let drawing = false;
+
+function canvasPosition(e){
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const source =
+        e.touches
+        ? e.touches[0]
+        : e;
+
+    return {
+
+        x:
+            (source.clientX -
+             rect.left)
+            *
+            canvas.width /
+            rect.width,
+
+        y:
+            (source.clientY -
+             rect.top)
+            *
+            canvas.height /
+            rect.height
+
+    };
+
+}
+
+function startDraw(e){
+
+    e.preventDefault();
+
+    drawing = true;
+
+    const p =
+        canvasPosition(e);
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        p.x,
+        p.y
+    );
+
+}
+
+function draw(e){
+
+    if(!drawing) return;
+
+    e.preventDefault();
+
+    const p =
+        canvasPosition(e);
+
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#111827";
+
+    ctx.lineTo(
+        p.x,
+        p.y
+    );
+
+    ctx.stroke();
+
+}
+
+function stopDraw(){
+
+    drawing = false;
+
+}
+
+canvas.addEventListener(
+    "mousedown",
+    startDraw
+);
+
+canvas.addEventListener(
+    "mousemove",
+    draw
+);
+
+canvas.addEventListener(
+    "mouseup",
+    stopDraw
+);
+
+canvas.addEventListener(
+    "mouseleave",
+    stopDraw
+);
+
+canvas.addEventListener(
+    "touchstart",
+    startDraw,
+    {passive:false}
+);
+
+canvas.addEventListener(
+    "touchmove",
+    draw,
+    {passive:false}
+);
+
+canvas.addEventListener(
+    "touchend",
+    stopDraw
+);
+
+function clearSignature(){
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+}
+
+function openSignatureModal(){
+
+    const data =
+        getDocumentData();
+
+    if(!data.person ||
+       !data.crimes ||
+       !data.reason ||
+       !data.judge){
+
+        showToast(
+            "Angaben fehlen",
+            "Bitte die Pflichtfelder des Dokuments ausfüllen.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    clearSignature();
+
+    document
+        .getElementById(
+            "signatureModal"
+        )
+        .classList.remove("hidden");
+
+    document
+        .getElementById(
+            "signatureModal"
+        )
+        .classList.add("flex");
+
+}
+
+function closeSignatureModal(){
+
+    const modal =
+        document.getElementById(
+            "signatureModal"
+        );
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+}
+
+async function confirmSignature(){
+
+    const blank =
+        canvas.toDataURL();
+
+    currentSignature =
+        blank;
+
+    const data =
+        getDocumentData();
+
+    const number =
+        generateDocumentNumber();
+
+    data.signature =
+        currentSignature;
+
+    data.number =
+        number;
+
+    try{
+
+        await db.ref(
+            "documents"
+        ).push(data);
+
+        showToast(
+            "Dokument ausgestellt",
+            `${documentTitle(data.type)} ${number} wurde gespeichert.`
+        );
+
+        closeSignatureModal();
+
+        renderDocumentHTML(
+            data,
+            number
+        );
+
+        document.getElementById(
+            "documentModalContent"
+        ).innerHTML =
+            renderDocumentHTML(
+                data,
+                number
+            );
+
+        document.getElementById(
+            "documentModal"
+        ).classList.remove("hidden");
+
+        document.getElementById(
+            "documentModal"
+        ).classList.add("flex");
+
+    }catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Fehler",
+            "Dokument konnte nicht gespeichert werden.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DOCUMENT ARCHIVE
+========================================================= */
+
+function renderDocuments(){
+
+    const container =
+        document.getElementById(
+            "documentArchive"
+        );
+
+    if(!container) return;
+
+    const query =
+        (
+            document.getElementById(
+                "documentSearch"
+            )?.value || ""
+        ).toLowerCase();
+
+    const filtered =
+        allDocuments.filter(d =>
+            [
+                d.number,
+                d.person,
+                d.judge,
+                d.crimes,
+                documentTitle(d.type)
+            ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        );
+
+    if(!filtered.length){
+
+        container.innerHTML = `
+            <div class="col-span-full
+                        text-center
+                        text-slate-600 py-12">
+
+                <i class="fa-solid fa-file-circle-xmark
+                          text-4xl mb-3"></i>
+
+                <div>
+                    Keine Dokumente gefunden.
+                </div>
+
+            </div>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML =
+        filtered.map(d => {
+
+            let icon =
+                d.type === "haftbefehl"
+                ? "fa-handcuffs text-red-400"
+                :
+                d.type === "fahndung"
+                ? "fa-magnifying-glass text-blue-400"
+                :
+                "fa-house text-purple-400";
+
+            return `
+
+            <div class="p-5 rounded-2xl
+                        bg-slate-950/70
+                        border border-slate-800">
+
+                <div class="flex justify-between">
+
+                    <div class="w-11 h-11 rounded-xl
+                                bg-slate-900
+                                flex items-center justify-center">
+
+                        <i class="fa-solid ${icon}"></i>
+
+                    </div>
+
+                    <span class="text-[10px]
+                                 text-slate-600">
+                        ${d.date || ""}
+                    </span>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <div class="font-black">
+                        ${documentTitle(d.type)}
+                    </div>
+
+                    <div class="text-xs text-slate-500 mt-1">
+                        ${escapeHtml(d.number || "Keine Nummer")}
+                    </div>
+
+                    <div class="mt-4 text-sm">
+                        ${escapeHtml(d.person)}
+                    </div>
+
+                    <div class="text-xs text-slate-600 mt-1">
+                        Richter:
+                        ${escapeHtml(d.judge)}
+                    </div>
+
+                </div>
+
+                <div class="flex gap-2 mt-5">
+
+                    <button
+                        onclick="openStoredDocument('${d.id}')"
+                        class="flex-1 py-2 rounded-lg
+                               bg-blue-500/10
+                               text-blue-400 text-xs">
+
+                        <i class="fa-solid fa-eye mr-1"></i>
+                        Anzeigen
+
+                    </button>
+
+                    <button
+                        onclick="deleteDocument('${d.id}')"
+                        class="px-3 py-2 rounded-lg
+                               bg-red-500/10
+                               text-red-400 text-xs">
+
+                        <i class="fa-solid fa-trash"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            `;
+
+        }).join("");
+
+}
+
+function openStoredDocument(id){
+
+    const d =
+        allDocuments.find(
+            x => x.id === id
+        );
+
+    if(!d) return;
+
+    document.getElementById(
+        "documentModalContent"
+    ).innerHTML =
+        renderDocumentHTML(
+            d,
+            d.number
+        );
+
+    document.getElementById(
+        "documentModal"
+    ).classList.remove("hidden");
+
+    document.getElementById(
+        "documentModal"
+    ).classList.add("flex");
+
+}
+
+function closeDocumentModal(){
+
+    const modal =
+        document.getElementById(
+            "documentModal"
+        );
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+}
+
+async function deleteDocument(id){
+
+    if(!confirm(
+        "Dieses Dokument wirklich löschen?"
+    )) return;
+
+    try{
+
+        await db.ref(
+            "documents/" + id
+        ).remove();
+
+        showToast(
+            "Dokument gelöscht",
+            "Das Dokument wurde entfernt."
+        );
+
+    }catch(error){
+
+        showToast(
+            "Fehler",
+            "Dokument konnte nicht gelöscht werden.",
+            "error"
+        );
+
+    }
+
+}
+
+function printDocument(){
+
+    window.print();
+
+}
+
+
+/* =========================================================
+   RECHNUNG
+========================================================= */
+
+function generateInvoice(){
+
+    const lawyer =
+        document.getElementById(
+            "invoiceLawyer"
+        ).value.trim();
+
+    const client =
+        document.getElementById(
+            "invoiceClient"
+        ).value.trim();
+
+    const service =
+        document.getElementById(
+            "invoiceService"
+        ).value.trim();
+
+    const qty =
+        Number(
+            document.getElementById(
+                "invoiceQty"
+            ).value
+        ) || 1;
+
+    const price =
+        Number(
+            document.getElementById(
+                "invoicePrice"
+            ).value
+        ) || 0;
+
+    const note =
+        document.getElementById(
+            "invoiceNote"
+        ).value.trim();
+
+    const total =
+        qty * price;
+
+    const invoiceNumber =
+        "RE-" +
+        new Date().getFullYear() +
+        "-" +
+        Math.floor(
+            10000 +
+            Math.random()*89999
+        );
+
+    currentInvoice = {
+        invoiceNumber,
+        lawyer,
+        client,
+        service,
+        qty,
+        price,
+        note,
+        total
+    };
+
+    document.getElementById(
+        "invoicePreview"
+    ).innerHTML = `
+
+        <div id="invoiceDocument">
+
+            <div style="display:flex;
+                        justify-content:space-between;
+                        border-bottom:3px solid #f59e0b;
+                        padding-bottom:25px">
+
+                <div>
+
+                    <div style="font-size:28px;
+                                font-weight:1000">
+                        JUSTITIA
+                    </div>
+
+                    <div style="font-size:11px;
+                                color:#64748b;
+                                letter-spacing:.15em">
+                        KANZLEI & JUSTIZ
+                    </div>
+
+                </div>
+
+                <div style="text-align:right">
+
+                    <div style="font-size:24px;
+                                font-weight:900">
+                        RECHNUNG
+                    </div>
+
+                    <div style="font-size:11px;
+                                color:#64748b">
+                        ${invoiceNumber}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div style="margin-top:40px;
+                        display:grid;
+                        grid-template-columns:1fr 1fr;
+                        gap:30px">
+
+                <div>
+
+                    <div style="font-size:10px;
+                                color:#64748b;
+                                text-transform:uppercase">
+                        Rechnungsempfänger
+                    </div>
+
+                    <div style="font-weight:800;
+                                margin-top:5px">
+                        ${escapeHtml(client || "Nicht angegeben")}
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <div style="font-size:10px;
+                                color:#64748b;
+                                text-transform:uppercase">
+                        Aussteller
+                    </div>
+
+                    <div style="font-weight:800;
+                                margin-top:5px">
+                        ${escapeHtml(lawyer || "JUSTITIA")}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <table style="width:100%;
+                          margin-top:45px;
+                          border-collapse:collapse">
+
+                <thead>
+
+                    <tr style="background:#f8fafc">
+
+                        <th style="text-align:left;padding:12px">
+                            Leistung
+                        </th>
+
+                        <th style="padding:12px">
+                            Menge
+                        </th>
+
+                        <th style="text-align:right;padding:12px">
+                            Preis
+                        </th>
+
+                        <th style="text-align:right;padding:12px">
+                            Gesamt
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td style="padding:15px;border-bottom:1px solid #e2e8f0">
+                            ${escapeHtml(service || "Rechtsberatung")}
+                        </td>
+
+                        <td style="padding:15px;text-align:center;border-bottom:1px solid #e2e8f0">
+                            ${qty}
+                        </td>
+
+                        <td style="padding:15px;text-align:right;border-bottom:1px solid #e2e8f0">
+                            ${price.toLocaleString("de-DE")} €
+                        </td>
+
+                        <td style="padding:15px;text-align:right;border-bottom:1px solid #e2e8f0;font-weight:900">
+                            ${total.toLocaleString("de-DE")} €
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+
+            <div style="display:flex;
+                        justify-content:flex-end;
+                        margin-top:30px">
+
+                <div style="width:280px">
+
+                    <div style="display:flex;
+                                justify-content:space-between;
+                                padding:10px 0">
+
+                        <span>Gesamtbetrag</span>
+
+                        <strong style="font-size:20px">
+                            ${total.toLocaleString("de-DE")} €
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            ${
+                note
+                ?
+                `<div style="margin-top:40px;
+                            padding:15px;
+                            background:#f8fafc;
+                            border-radius:8px;
+                            font-size:12px">
+                    <strong>Hinweis:</strong><br>
+                    ${escapeHtml(note)}
+                 </div>`
+                :
+                ""
+            }
+
+
+            <div style="margin-top:80px;
+                        border-top:1px solid #e2e8f0;
+                        padding-top:20px;
+                        font-size:10px;
+                        color:#64748b">
+
+                JUSTITIA — Kanzlei & Justizsystem<br>
+                Rechnung erstellt am:
+                ${new Date().toLocaleDateString("de-DE")}
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+function downloadInvoicePDF(){
+
+    if(!currentInvoice){
+
+        showToast(
+            "Keine Rechnung",
+            "Bitte zuerst eine Rechnung erstellen.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    const element =
+        document.getElementById(
+            "invoiceDocument"
+        );
+
+    html2pdf()
+        .set({
+
+            margin:10,
+
+            filename:
+                currentInvoice.invoiceNumber
+                + ".pdf",
+
+            image:{
+                type:"jpeg",
+                quality:.98
+            },
+
+            html2canvas:{
+                scale:2
+            },
+
+            jsPDF:{
+                unit:"mm",
+                format:"a4",
+                orientation:"portrait"
+            }
+
+        })
+        .from(element)
+        .save();
+
+}
+
+
+/* =========================================================
+   GLOBALE SUCHE
+========================================================= */
+
+function globalSearch(){
+
+    const input =
+        document.getElementById(
+            "globalSearch"
+        );
+
+    const container =
+        document.getElementById(
+            "globalResults"
+        );
+
+    if(!input || !container)
+        return;
+
+    const query =
+        input.value.trim().toLowerCase();
+
+    if(!query){
+
+        container.innerHTML = `
+            <div class="text-center text-slate-600
+                        py-10 col-span-full">
+                Suchbegriff eingeben...
+            </div>
+        `;
+
+        return;
+
+    }
+
+    const cases =
+        allCases.filter(c =>
+            [
+                c.suspect,
+                c.lawyer,
+                c.officers,
+                c.crime
+            ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        );
+
+    const documents =
+        allDocuments.filter(d =>
+            [
+                d.number,
+                d.person,
+                d.judge,
+                d.crimes,
+                documentTitle(d.type)
+            ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        );
+
+    const results = [
+
+        ...cases.map(c => ({
+            type:"Akte",
+            title:c.suspect,
+            subtitle:
+                "Anwalt: " +
+                (c.lawyer || "Keine Angabe"),
+            icon:"fa-folder-open",
+            color:"text-amber-400",
+            action:
+                `editCase('${c.id}')`
+        })),
+
+        ...documents.map(d => ({
+            type:documentTitle(d.type),
+            title:d.person,
+            subtitle:
+                d.number +
+                " • Richter: " +
+                d.judge,
+            icon:"fa-gavel",
+            color:"text-blue-400",
+            action:
+                `openStoredDocument('${d.id}')`
+        }))
+
+    ];
+
+    if(!results.length){
+
+        container.innerHTML = `
+            <div class="text-center text-slate-600
+                        py-10 col-span-full">
+
+                <i class="fa-solid fa-magnifying-glass
+                          text-4xl mb-3"></i>
+
+                <div>
+                    Keine Treffer gefunden.
+                </div>
+
+            </div>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML =
+        results.map(r => `
+
+        <button
+            onclick="${r.action}"
+            class="text-left p-5 rounded-2xl
+                   bg-slate-950/70
+                   border border-slate-800
+                   hover:border-amber-500/20">
+
+            <div class="flex items-center gap-4">
+
+                <div class="w-11 h-11 rounded-xl
+                            bg-slate-900
+                            flex items-center justify-center
+                            ${r.color}">
+
+                    <i class="fa-solid ${r.icon}"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="text-[9px]
+                                uppercase
+                                text-slate-600">
+                        ${r.type}
+                    </div>
+
+                    <div class="font-bold">
+                        ${escapeHtml(r.title)}
+                    </div>
+
+                    <div class="text-xs
+                                text-slate-500
+                                mt-1">
+                        ${escapeHtml(r.subtitle)}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </button>
+
+    `).join("");
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(
+    title,
+    message,
+    type="success"
+){
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+    const icon =
+        document.getElementById(
+            "toastIcon"
+        );
+
+    document.getElementById(
+        "toastTitle"
+    ).textContent = title;
+
+    document.getElementById(
+        "toastMessage"
+    ).textContent = message;
+
+    if(type === "error"){
+
+        icon.innerHTML =
+            '<i class="fa-solid fa-circle-exclamation"></i>';
+
+        icon.className =
+            "text-red-400 text-xl";
+
+    }else{
+
+        icon.innerHTML =
+            '<i class="fa-solid fa-circle-check"></i>';
+
+        icon.className =
+            "text-emerald-400 text-xl";
+
+    }
+
+    toast.classList.remove("hidden");
+    toast.classList.add("toast");
+
+    clearTimeout(
+        window.justitiaToast
+    );
+
+    window.justitiaToast =
+        setTimeout(() => {
+
+            toast.classList.add(
+                "hidden"
+            );
+
+        },3500);
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(
+        value ?? ""
+    )
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+setDocumentType(
+    "haftbefehl"
+);
+
+checkLogin();
+
+</script>
+
+</body>
+</html>
